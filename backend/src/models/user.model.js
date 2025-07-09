@@ -23,6 +23,7 @@ const userModel = (sequelize) => {
       type: DataTypes.STRING,
     },
   });
+
   return User;
 };
 
