@@ -22,6 +22,14 @@ const userModel = (sequelize) => {
     userRefreshToken: {
       type: DataTypes.STRING,
     },
+    isUserVerifiedEmail: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
+    emailVerificationToken: {
+      type: DataTypes.STRING,
+      defaultValue: null,
+    },
   });
 
   return User;
