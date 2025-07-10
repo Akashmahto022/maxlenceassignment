@@ -18,4 +18,12 @@ const generateRefreshToken = async (currentUser) => {
   return token;
 };
 
-export { generateAccessToken, generateRefreshToken };
+const verifyUserToken = (token) => {
+  try {
+    return jwt.verify(token, process.env.JWT_SECRET_KEY);
+  } catch (error) {
+    return null;
+  }
+};
+
+export { generateAccessToken, generateRefreshToken, verifyUserToken };
