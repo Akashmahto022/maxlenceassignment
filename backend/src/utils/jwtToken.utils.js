@@ -20,7 +20,8 @@ const generateRefreshToken = async (currentUser) => {
 
 const verifyUserToken = (token) => {
   try {
-    return jwt.verify(token, process.env.JWT_SECRET_KEY);
+    const decodeToken = jwt.verify(token, process.env.JWT_SECRET_KET);
+    return decodeToken;
   } catch (error) {
     return null;
   }

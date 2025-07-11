@@ -1,31 +1,36 @@
-import React, { useEffect, useState } from 'react'
-import { useNavigate } from "react-router-dom";
-import { useForm } from 'react-hook-form'
-import axios from 'axios'
-
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { useForm } from "react-hook-form";
+import axios from "axios";
 
 const Register = () => {
-  const url = "http://localhost:8000"
+  const url = "http://localhost:8000";
   const [previewImage, setPreviewImage] = useState(null);
-  const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm({
+  const [responseData, setResponseData] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm({
     defaultValues: {
       email: "",
       password: "",
-      userProfileImage: ""
-    }
-  })
+      userProfileImage: "",
+    },
+  });
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
-  const uploadImage = watch('userProfileImage');
+  const uploadImage = watch("userProfileImage");
 
   useEffect(() => {
     if (uploadImage && uploadImage[0]) {
-      const file = uploadImage[0]
+      const file = uploadImage[0];
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result)
-      }
+        setPreviewImage(reader.result);
+      };
       reader.readAsDataURL(file);
     } else {
       setPreviewImage(null);
@@ -33,38 +38,45 @@ const Register = () => {
   }, [uploadImage]);
 
   const onSubmit = async (data) => {
-    console.log('form data', data)
-    const file = data.userProfileImage[0];
-    console.log('Uploaded File:', file);
-
     const formData = new FormData();
 
     formData.append("email", data.email);
-    formData.append("userPassword", data.userPassword);
+    formData.append("password", data.userPassword);
     formData.append("userProfileImage", data.userProfileImage[0]);
 
-    console.log(formData)
-
     try {
-      const response = await axios.post(`${url}/api/v1/user/register`, formData)
+      const response = await axios.post(
+        `${url}/api/v1/user/register`,
+        formData
+      );
       if (response.data) {
-        console.log(response)
-        navigate("/login")
+        setResponseData(response.data);
+        navigate("/login");
       }
-
     } catch (error) {
-      console.log(error)
+      console.log(error);
+      setResponseData(error.response.data.message);
+      console.log("lkaldklsdald", responseData);
     }
-  }
-
+  };
 
   return (
     <div className="bg-gray-100 flex items-center justify-center h-screen">
-      <div className="bg-white p-8 rounded-lg shadow-lg w
-      -full max-w-md">
+      <div
+        className="bg-white p-8 rounded-lg shadow-lg w
+      -full max-w-md"
+      >
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-700">
           Register
         </h2>
+        {responseData && (
+          <p className="flex justify-center items-center text-red-600 text-xl">
+            {responseData}
+            <Link to={"/login"} className="mx-1 text-blue-700 underline">
+              Login
+            </Link>
+          </p>
+        )}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
             <label
@@ -76,11 +88,13 @@ const Register = () => {
             <input
               {...register("email", {
                 required: "email is required",
-                pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" }
+                pattern: {
+                  value: /^\S+@\S+$/i,
+                  message: "Invalid email address",
+                },
               })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
-              placeholder='Enter Your Email Addres'
-
+              placeholder="Enter Your Email Addres"
             />
             {errors.email && (
               <p style={{ color: "red" }}>{errors.email.message}</p>
@@ -115,19 +129,25 @@ const Register = () => {
             </label>
             <input
               type="file"
-              accept='image/*'
-              {...register('userProfileImage', { required: 'Image is required' })}
+              accept="image/*"
+              {...register("userProfileImage", {
+                required: "Image is required",
+              })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
             />
-            {errors.image && (<p className="text-red-500">{errors.userProfileImage.message}</p>)}
-            {
-              previewImage && (
-                <div className='flex justify-center items-center gap-2 mt-2'>
-                  <p>Image Preview:</p>
-                  <img src={previewImage} alt="profile image" className='w-20 h-20 object-cover border rounded' />
-                </div>
-              )
-            }
+            {errors.image && (
+              <p className="text-red-500">{errors.userProfileImage.message}</p>
+            )}
+            {previewImage && (
+              <div className="flex justify-center items-center gap-2 mt-2">
+                <p>Image Preview:</p>
+                <img
+                  src={previewImage}
+                  alt="profile image"
+                  className="w-20 h-20 object-cover border rounded"
+                />
+              </div>
+            )}
           </div>
 
           {/* Submit Button */}
@@ -141,7 +161,7 @@ const Register = () => {
         </form>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Register
+export default Register;

@@ -11,11 +11,10 @@ const userModel = (sequelize) => {
     email: {
       type: DataTypes.STRING,
       allowNull: false,
-      unique: true,
     },
     userPassword: {
       type: DataTypes.STRING,
-      allowNull: true,
+      allowNull: false,
     },
     userProfileImage: {
       type: DataTypes.STRING,

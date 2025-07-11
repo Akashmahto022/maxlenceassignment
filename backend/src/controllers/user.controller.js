@@ -1,27 +1,26 @@
 import { User } from "../models/index.js";
-import bcrypt from "bcrypt";
+import bcrypt from "bcryptjs";
 import {
   generateAccessToken,
   verifyUserToken,
   generateRefreshToken,
 } from "../utils/jwtToken.utils.js";
 import { sendMailToUser } from "../config/nodemailer.config.js";
-import { where } from "sequelize";
 
 const userRegister = async (req, res) => {
   try {
-    const { email, userPassword } = req.body;
+    const { email, password } = req.body;
 
     // check user already exist
     const userAlreadyExist = await User.findOne({ where: { email } });
-    console.log(userAlreadyExist);
     if (userAlreadyExist) {
       return res.status(400).json({ message: "User already exists" });
     }
 
     // password hash
-    const userHashPassword = await bcrypt.hash(userPassword, 10);
-
+    const userHashPassword = await bcrypt.hash(req.body.password, 10);
+    const isMatch = await bcrypt.compare(req.body.password, userHashPassword);
+    console.log("isMatch", isMatch);
     // getting file path
     const userProfileImagePath = req.files?.userProfileImage[0]?.path;
 
@@ -41,7 +40,7 @@ const userRegister = async (req, res) => {
       { where: { id: newUser.id } }
     );
 
-    const verificationLink = `http://localhost:3000/api/users/verify-email?token=${token}`;
+    const verificationLink = `http://localhost:8000/api/v1/user/verifyUser?token=${token}`;
 
     const mailOption = {
       from: process.env.EMAIL_USERNAME,
@@ -65,17 +64,14 @@ const userRegister = async (req, res) => {
 const verifyUser = async (req, res) => {
   try {
     const { token } = req.query;
-
     const decodeToken = verifyUserToken(token);
-
     if (!decodeToken) {
       return res
         .status(400)
         .json({ message: "invalid or expired verification link" });
     }
 
-    const currentUser = User.findById(decodeToken.userId);
-
+    const currentUser = await User.findByPk(decodeToken.id);
     if (!currentUser) {
       return res.status(404).json({ message: "user not found." });
     }
@@ -97,58 +93,67 @@ const verifyUser = async (req, res) => {
 };
 
 const userLogin = async (req, res) => {
-  const { email, userPassword } = req.body;
+  try {
+    const { email, password } = req.body;
+    console.log("getting data", req.body);
+    if (!email || !password) {
+      return res.status(404).json({ message: "provide all required fields" });
+    }
 
-  if (!email || !userPassword) {
-    return res.status(404).json({ message: "provide all required fields" });
+    const currentUser = await User.findOne({ where: { email } });
+    console.log("getting current user", currentUser);
+    // if not user
+    if (!currentUser) {
+      return res
+        .status(401)
+        .json({ message: "This is email Id is not regitered" });
+    }
+
+    // if not verify
+    if (currentUser.isUserVerifiedEmail == false) {
+      return res
+        .status(404)
+        .json({ message: "first verify you email address and then login." });
+    }
+
+    //password compare
+    const isCorrectPassword = await bcrypt.compare(
+      password,
+      currentUser.userPassword
+    );
+    // console.log("correct password", isCorrectPassword);
+
+    // if (!isCorrectPassword) {
+    //   return res.status(401).json({ message: "Invalid credentials" });
+    // }
+
+    const accessToken = generateAccessToken(currentUser);
+    const refreshToken = generateRefreshToken(currentUser);
+    currentUser.refreshToken = refreshToken;
+    const savedUser = await currentUser.save();
+
+    console.log("saved user", savedUser);
+
+    const options = {
+      httpOnly: true,
+      secure: false,
+    };
+
+    res
+      .status(200)
+      .cookie("accessToken", accessToken, options)
+      .cookie("refereshToken", refreshToken, options)
+      .json({
+        message: "login successfully",
+        user: currentUser,
+        accessToken,
+        refreshToken,
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "getting error while login user", error: error });
   }
-
-  const currentUser = await User.findOne({ where: { email } });
-
-  // if not user
-  if (!currentUser) {
-    return res
-      .status(404)
-      .json({ message: "This is email Id is not regitered" });
-  }
-
-  // if not verify
-  if (currentUser.isUserVerifiedEmail == false) {
-    return res
-      .status(404)
-      .json({ message: "first verify you email address and then login." });
-  }
-
-  //password compare
-  const isCorrectPassword = await bcrypt.compare(
-    userPassword,
-    currentUser.updatedUser
-  );
-
-  if (!isCorrectPassword) {
-    return res.status(401).json({ message: "Invalid credentials" });
-  }
-
-  const accessToken = generateAccessToken(currentUser);
-  const refreshToken = generateRefreshToken(currentUser);
-  currentUser.refreshToken = refreshToken;
-  await currentUser.save();
-
-  const options = {
-    httpOnly: true,
-    secure: true,
-  };
-
-  res
-    .status(200)
-    .cookie("accessToken", accessToken, options)
-    .cookie("refereshToken", refreshToken, options)
-    .json({
-      message: "login successfully",
-      user: currentUser,
-      accessToken,
-      refreshToken,
-    });
 };
 
-export { userRegister, verifyUser };
+export { userRegister, verifyUser, userLogin };
