@@ -1,50 +1,71 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useNavigate } from "react-router-dom";
+import { useForm } from 'react-hook-form'
+import axios from 'axios'
+
 
 const Register = () => {
-  const [image, setImage] = useState(null);
+  const url = "http://localhost:8000"
   const [previewImage, setPreviewImage] = useState(null);
-  const [data, setData] = useState({
-    email: "",
-    password: "",
-  });
+  const { register, handleSubmit, watch, reset, formState: { errors, isSubmitting } } = useForm({
+    defaultValues: {
+      email: "",
+      password: "",
+      userProfileImage: ""
+    }
+  })
+
   const navigate = useNavigate()
 
-  const handleChange = (e) => {
-    const name = e.target.name;
-    const value = e.target.value;
-    setData((data) => ({ ...data, [name]: value }));
-  };
+  const uploadImage = watch('userProfileImage');
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-
-    if (file) {
-      setImage(file)
+  useEffect(() => {
+    if (uploadImage && uploadImage[0]) {
+      const file = uploadImage[0]
       const reader = new FileReader();
       reader.onloadend = () => {
-        setPreviewImage(reader.result);
-
+        setPreviewImage(reader.result)
       }
       reader.readAsDataURL(file);
+    } else {
+      setPreviewImage(null);
     }
+  }, [uploadImage]);
 
+  const onSubmit = async (data) => {
+    console.log('form data', data)
+    const file = data.userProfileImage[0];
+    console.log('Uploaded File:', file);
 
+    const formData = new FormData();
+
+    formData.append("email", data.email);
+    formData.append("userPassword", data.userPassword);
+    formData.append("userProfileImage", data.userProfileImage[0]);
+
+    console.log(formData)
+
+    try {
+      const response = await axios.post(`${url}/api/v1/user/register`, formData)
+      if (response.data) {
+        console.log(response)
+        navigate("/login")
+      }
+
+    } catch (error) {
+      console.log(error)
+    }
   }
 
-  const handleSubmit = async (e) => {
-    navigate("/login")
-  }
 
   return (
     <div className="bg-gray-100 flex items-center justify-center h-screen">
       <div className="bg-white p-8 rounded-lg shadow-lg w
       -full max-w-md">
         <h2 className="text-2xl font-bold mb-6 text-center text-gray-700">
-          Sign Up
+          Register
         </h2>
-        <form onSubmit={handleSubmit}>
-          {/* Email */}
+        <form onSubmit={handleSubmit(onSubmit)}>
           <div className="mb-4">
             <label
               className="block text-gray-600 font-semibold mb-2"
@@ -53,18 +74,19 @@ const Register = () => {
               Email
             </label>
             <input
-              type="email"
-              id="email"
-              name="email"
-              value={data.email}
-              onChange={handleChange}
-              placeholder="Enter your email"
+              {...register("email", {
+                required: "email is required",
+                pattern: { value: /^\S+@\S+$/i, message: "Invalid email address" }
+              })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
-              required
+              placeholder='Enter Your Email Addres'
+
             />
+            {errors.email && (
+              <p style={{ color: "red" }}>{errors.email.message}</p>
+            )}
           </div>
 
-          {/* Password */}
           <div className="mb-4">
             <label
               className="block text-gray-600 font-semibold mb-2"
@@ -73,18 +95,17 @@ const Register = () => {
               Password
             </label>
             <input
-              type="password"
-              id="password"
-              name="password"
-              value={data.password}
-              onChange={handleChange}
+              {...register("password", {
+                required: "Password is Reuired",
+              })}
               placeholder="Enter your password"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
-              required
             />
+            {errors.password && (
+              <p style={{ color: "red" }}>{errors.password.message}</p>
+            )}
           </div>
 
-          {/* Avatar */}
           <div className="mb-4">
             <label
               className="block text-gray-600 font-semibold mb-2"
@@ -93,12 +114,12 @@ const Register = () => {
               Profile Picture
             </label>
             <input
-              onChange={handleImageChange}
               type="file"
               accept='image/*'
-              required
+              {...register('userProfileImage', { required: 'Image is required' })}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring focus:border-blue-500"
             />
+            {errors.image && (<p className="text-red-500">{errors.userProfileImage.message}</p>)}
             {
               previewImage && (
                 <div className='flex justify-center items-center gap-2 mt-2'>
@@ -112,6 +133,7 @@ const Register = () => {
           {/* Submit Button */}
           <button
             type="submit"
+            disabled={isSubmitting}
             className="w-full bg-blue-500 text-white font-semibold py-2 px-4 rounded-md hover:bg-blue-600 transition-colors"
           >
             Rgister
