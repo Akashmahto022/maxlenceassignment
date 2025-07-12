@@ -7,6 +7,8 @@ import NotFound from './pages/NotFound'
 import About from './pages/About'
 import Contact from './pages/Contact'
 import Login from './pages/Login'
+import ResetPassword from './pages/ResetPassword'
+import ChangePassword from './pages/ChangePassword'
 
 const App = () => {
   return (
@@ -18,6 +20,8 @@ const App = () => {
         <Route path='/contact' element={<Contact />} />
         <Route path='/register' element={<Register />} />
         <Route path='/login' element={<Login />} />
+        <Route path='/reset-password' element={<ResetPassword />} />
+        <Route path='/change-password' element={<ChangePassword />} />
         <Route path='*' element={<NotFound />} />
       </Routes>
     </>

@@ -9,7 +9,7 @@ const generateAccessToken = (currentUser) => {
   return token;
 };
 
-const generateRefreshToken = async (currentUser) => {
+const generateRefreshToken = (currentUser) => {
   const token = jwt.sign(
     { id: currentUser.id },
     process.env.JWT_SECRET_REFRESH_KEY,

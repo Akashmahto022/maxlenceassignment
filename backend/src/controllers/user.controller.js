@@ -129,7 +129,7 @@ const userLogin = async (req, res) => {
 
     const accessToken = generateAccessToken(currentUser);
     const refreshToken = generateRefreshToken(currentUser);
-    currentUser.refreshToken = refreshToken;
+    currentUser.userRefreshToken = refreshToken;
     const savedUser = await currentUser.save();
 
     console.log("saved user", savedUser);
@@ -156,4 +156,52 @@ const userLogin = async (req, res) => {
   }
 };
 
-export { userRegister, verifyUser, userLogin };
+const passwordRequest = async (req, res) => {
+  try {
+    const { email } = req.body;
+    console.log(email)
+    const user = await User.findOne({ where: { email } });
+    if (!user) {
+      return res.status(401).json({ message: "User Not exists with this mail" })
+    }
+    console.log(user)
+    const verificationLink = `http://localhost:5173/reset-password`;
+
+    const mailOption = {
+      from: process.env.EMAIL_USERNAME,
+      to: email,
+      subject: "password verification link",
+      html: `<p>change you password by clicking on this link: <a href="${verificationLink}">Change Password</a></p>`,
+    };
+    await sendMailToUser(mailOption);
+
+    res.status(200).json({ message: "password reset mail send to the user" })
+
+  } catch (error) {
+    return res
+      .status(200)
+      .json({ message: "error while sending the request of password reset link" });
+  }
+}
+
+const changeCurrentPassword = async (req, res) => {
+  try {
+    const { newPassword, confirmPassword } = req.body;
+    const user = await User.findByPk(req.user?.id);
+
+    if (!newPassword === confirmPassword) {
+      return res.status(401).json({ message: "both password should match" })
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    res.status(200).json({ message: "password change successfuly" })
+
+  } catch (error) {
+    res.status(500).json({ message: "error while change password", error })
+    console.log("error while change the password", error)
+  }
+}
+
+export { userRegister, verifyUser, userLogin, passwordRequest, changeCurrentPassword };

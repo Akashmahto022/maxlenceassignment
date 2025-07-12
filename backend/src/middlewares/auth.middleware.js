@@ -3,6 +3,7 @@ import { User } from "../models/index.js";
 
 export const verifyToken = async (req, res, next) => {
   try {
+    console.log("getting token",req.cookies?.accessToken)
     const token =
       req.cookies?.accessToken ||
       req.header("Authorization")?.replace("Bearer ", "");
@@ -10,11 +11,9 @@ export const verifyToken = async (req, res, next) => {
       throw new apiError(401, "Unauthorized requrest");
     }
 
-    const decodeToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
-
-    const user = await User.findById(decodeToken?._id).select(
-      "-password -refreshToken"
-    );
+    const decodeToken = jwt.verify(token, process.env.JWT_SECRET_KET);
+    console.log("docodetoken", decodeToken)
+    const user = await User.findByPk(decodeToken.id)
     if (!user) {
       // todo discuss about front end
       throw new apiError(401, "invalid Access token");
