@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import axios from "axios";
 const Register = () => {
@@ -73,7 +73,7 @@ const Register = () => {
             )}
           </div>
 
-          <div className="mb-4">
+          <div className="">
             <label
               className="block text-gray-600 font-semibold mb-2"
               htmlFor="password"
@@ -90,6 +90,9 @@ const Register = () => {
             {errors.password && (
               <p style={{ color: "red" }}>{errors.password.message}</p>
             )}
+          </div>
+          <div className="mb-3 flex justify-end items-end mt-2">
+            <Link to={"/reset-password"} className="text-blue-700">forget password</Link>
           </div>
 
           {/* Submit Button */}
