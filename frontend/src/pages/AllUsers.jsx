@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 
 const AllUsers = () => {
@@ -6,25 +6,44 @@ const AllUsers = () => {
   const [users, setUsers] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
 
-  const userRole = localStorage.getItem("userRole");
-  console.log("userRole", userRole);
-  if (userRole === "admin") {
-    setIsAdmin(true);
-  }
+  useEffect(() => {
+    const userRole = JSON.parse(localStorage.getItem("userRole"));
+    console.log("userRole", userRole);
+    if (userRole === "admin") {
+      setIsAdmin(true);
+    } else {
+      setIsAdmin(false);
+    }
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      const response = await axios.get(`${url}/api/v1/user/get-all`);
+      if (response.data) {
+        setUsers(response.data.users);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
 
   useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await axios.get(`${url}/api/v1/user/get-all`);
-        if (response.data) {
-          setUsers(response.data.users);
-        }
-      } catch (error) {
-        console.error("Error fetching users:", error);
-      }
-    };
     fetchUsers();
   }, []);
+
+  const deleteUser = async (userId) => {
+    try {
+      const response = await axios.delete(
+        `${url}/api/v1/user/delete-user/${userId}`
+      );
+      if (response.status === 200) {
+        await fetchUsers();
+      }
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    }
+  };
+
   return (
     <div className="container mx-auto p-4">
       <h1 className="text-2xl font-bold mb-4">All Users</h1>
@@ -43,7 +62,10 @@ const AllUsers = () => {
             <h2>User Id : {user.id}</h2>
             <h2>User eamil: {user.email}</h2>
             {isAdmin && (
-              <button className="p-2 text-white bg-red-600 cursor-pointer rounded-xl my-3">
+              <button
+                onClick={() => deleteUser(user.id)}
+                className="p-2 text-white bg-red-600 cursor-pointer rounded-xl my-3"
+              >
                 Delete
               </button>
             )}

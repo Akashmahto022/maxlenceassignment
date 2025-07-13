@@ -27,6 +27,6 @@ router.route("/request/reset-password").post(passwordRequest);
 router.route("/change-password").post(verifyToken, changeCurrentPassword);
 router.route("/auth-with-google").get(loginWithGoogle);
 router.route("/get-all").get(getAllUsers);
-router.route("/delete-user").delete(deleteUser);
+router.route("/delete-user/:id").delete(deleteUser);
 
 export default router;
