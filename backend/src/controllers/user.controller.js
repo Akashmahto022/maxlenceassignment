@@ -229,9 +229,28 @@ const loginWithGoogle = async (req, res) => {
     const isUserExists = await User.findOne({ where: { email } });
     console.log("user esists or not", isUserExists);
     if (isUserExists) {
-      return res
-        .status(401)
-        .json({ message: "user already exists with this email" });
+      const accessToken = generateAccessToken(isUserExists);
+      const refreshToken = generateRefreshToken(isUserExists);
+      isUserExists.userRefreshToken = refreshToken;
+      const savedUser = await isUserExists.save();
+
+      console.log("saved user", savedUser);
+
+      const options = {
+        httpOnly: true,
+        secure: false,
+      };
+
+      res
+        .status(200)
+        .cookie("accessToken", accessToken, options)
+        .cookie("refereshToken", refreshToken, options)
+        .json({
+          message: "login successfully",
+          user: savedUser,
+          accessToken,
+          refreshToken,
+        });
     }
 
     const newUser = await User.create({
@@ -269,6 +288,32 @@ const loginWithGoogle = async (req, res) => {
   }
 };
 
+const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.findAll();
+    if (!users || users.length === 0) {
+      return res.status(404).json({ message: "No users found" });
+    }
+    res.status(200).json({ message: "here is the list of users", users });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching users", error });
+  }
+};
+
+const deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const user = await User.findByPk(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    await user.destroy();
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ message: "Error deleting user", error });
+  }
+};
+
 export {
   userRegister,
   verifyUser,
@@ -276,4 +321,6 @@ export {
   passwordRequest,
   changeCurrentPassword,
   loginWithGoogle,
+  deleteUser,
+  getAllUsers,
 };

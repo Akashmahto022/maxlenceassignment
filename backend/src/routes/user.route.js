@@ -8,6 +8,8 @@ import {
   userRegister,
   verifyUser,
   loginWithGoogle,
+  getAllUsers,
+  deleteUser,
 } from "../controllers/user.controller.js";
 
 const router = Router();
@@ -24,5 +26,7 @@ router.route("/userlogin").post(userLogin);
 router.route("/request/reset-password").post(passwordRequest);
 router.route("/change-password").post(verifyToken, changeCurrentPassword);
 router.route("/auth-with-google").get(loginWithGoogle);
+router.route("/get-all").get(getAllUsers);
+router.route("/delete-user").delete(deleteUser);
 
 export default router;

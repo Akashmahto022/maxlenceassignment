@@ -57,7 +57,6 @@ const Register = () => {
     } catch (error) {
       console.log(error);
       setResponseData(error.response.data.message);
-      console.log("lkaldklsdald", responseData);
     }
   };
 

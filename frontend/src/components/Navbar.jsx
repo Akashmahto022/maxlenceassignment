@@ -40,14 +40,9 @@ const Navbar = () => {
                 Home
               </li>
             </Link>
-            <Link to={"/about"}>
+            <Link to={"/all-users"}>
               <li className="hover:underline hover:cursor-pointer px-2 rounded-2xl">
-                About
-              </li>
-            </Link>
-            <Link to={"/contact"}>
-              <li className="hover:underline hover:cursor-pointer px-2 rounded-2xl">
-                Contact
+                Users
               </li>
             </Link>
             <Link to={"/register"}>
@@ -72,14 +67,9 @@ const Navbar = () => {
                 Home
               </li>
             </Link>
-            <Link to={"/about"} onClick={() => setMenuOpen(false)}>
+            <Link to={"/all-users"} onClick={() => setMenuOpen(false)}>
               <li className="hover:underline hover:cursor-pointer px-2 py-2 rounded-2xl bg-blue-800">
-                About
-              </li>
-            </Link>
-            <Link to={"/contact"} onClick={() => setMenuOpen(false)}>
-              <li className="hover:underline hover:cursor-pointer px-2 py-2 rounded-2xl bg-blue-800">
-                Contact
+                users
               </li>
             </Link>
             <Link to={"/register"} onClick={() => setMenuOpen(false)}>
